@@ -25,12 +25,27 @@ test('turns a function into an emitter', function (t) {
 
 test('two emitters don\'t conflict', function (t) {
 	t.plan(1)
-	var fn1 = function () { t.pass() }
-	var fn2 = function () { t.fail() }
+	function fn1() { t.pass() }
+	function fn2() { t.fail() }
 	makeEmitter(fn1)
 	makeEmitter(fn2)
 	fn1.on('event', fn1)
 	fn2.on('event', fn2)
 	fn1.emit('event')
 	t.end()
+})
+
+test('doesn\'t mess with existing properties, for the most part', function (t) {
+	t.plan(2)
+	var obj = {
+		thing: 'I will stay',
+		on: 'I will be overwritten'
+	}
+	makeEmitter(obj)
+	obj.on('event', function () {
+		t.equal(obj.thing, 'I will stay')
+		t.notEqual(obj.on, 'I will be overwritten')
+		t.end()
+	})
+	obj.emit('event')
 })
